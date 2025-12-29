@@ -16,6 +16,7 @@ dependencies = [
     "fastapi",
     "uvicorn",
     "click",
+    "rich>=14.2.0",
 ]
 
 [dependency-groups]
@@ -32,6 +33,7 @@ bugs = "https://github.com/deti/vibe"
 
 [project.scripts]
 show-settings = "vibe.cli.show_settings:main"
+vibe = "vibe.cli.vibe:main"
 
 # Configure hatchling to find packages in src/
 [tool.hatch.build.targets.wheel]
