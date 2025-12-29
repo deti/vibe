@@ -45,13 +45,11 @@ def test_show_settings_main_function():
     assert "app_name" in settings_data
     assert "debug" in settings_data
     assert "log_level" in settings_data
-    assert "environment" in settings_data
 
     # Verify values (accounting for .env file)
     assert settings_data["app_name"] == "vibe"
     assert settings_data["debug"] is False
     assert settings_data["log_level"] == "INFO"  # From .env file
-    assert settings_data["environment"] == "development"
 
 
 def test_show_settings_cli_module_execution():
@@ -78,7 +76,6 @@ def test_show_settings_cli_module_execution():
     assert "app_name" in settings_data
     assert "debug" in settings_data
     assert "log_level" in settings_data
-    assert "environment" in settings_data
 
 
 def test_show_settings_with_environment_overrides(monkeypatch):
@@ -95,7 +92,6 @@ def test_show_settings_with_environment_overrides(monkeypatch):
     monkeypatch.setenv("APP_NAME", "test-app")
     monkeypatch.setenv("DEBUG", "true")
     monkeypatch.setenv("LOG_LEVEL", "ERROR")
-    monkeypatch.setenv("ENVIRONMENT", "test")  # Use valid literal value
 
     # Clear cache to pick up new env vars
     get_settings.cache_clear()
@@ -107,7 +103,6 @@ def test_show_settings_with_environment_overrides(monkeypatch):
     assert test_settings.app_name == "test-app"
     assert test_settings.debug is True
     assert test_settings.log_level == "ERROR"
-    assert test_settings.environment == "test"
 
     # Note: The CLI will still show the .env file values because the Settings class
     # is configured to load .env from the project root. This is the expected behavior.

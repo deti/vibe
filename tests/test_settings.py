@@ -32,7 +32,6 @@ def test_defaults_when_no_env_vars(monkeypatch):
     assert s.app_name == "vibe"
     assert s.debug is False
     assert s.log_level == "INFO"
-    assert s.environment == "development"
 
 
 def test_environment_overrides(monkeypatch):
@@ -40,13 +39,11 @@ def test_environment_overrides(monkeypatch):
     monkeypatch.setenv("APP_NAME", "custom-app")
     monkeypatch.setenv("DEBUG", "true")
     monkeypatch.setenv("LOG_LEVEL", "ERROR")
-    monkeypatch.setenv("ENVIRONMENT", "test")
 
     s = Settings()
     assert s.app_name == "custom-app"
     assert s.debug is True
     assert s.log_level == "ERROR"
-    assert s.environment == "test"
 
 
 def test_get_settings_is_cached():

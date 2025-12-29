@@ -49,6 +49,3 @@ clean:  ## Clean up generated files
 
 show-settings:  ## Show current application settings
 	uv run show-settings
-
-serve:  ## Serve API
-	uv run serve

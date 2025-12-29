@@ -38,18 +38,6 @@ class Settings(BaseSettings):
         default="INFO",
         description="Logging level.",
     )
-    environment: Literal["development", "production", "test"] = Field(
-        default="development",
-        description="Runtime environment name.",
-    )
-    host: str = Field(
-        default="127.0.0.1",
-        description="API server host address.",
-    )
-    port: int = Field(
-        default=8000,
-        description="API server port number.",
-    )
     # Pydantic v2 settings config
     model_config = SettingsConfigDict(
         # Read .env from the project root

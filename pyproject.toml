@@ -32,7 +32,6 @@ bugs = "https://github.com/deti/vibe"
 
 [project.scripts]
 show-settings = "vibe.cli.show_settings:main"
-serve = "vibe.cli.serve:main"
 
 # Configure hatchling to find packages in src/
 [tool.hatch.build.targets.wheel]
@@ -86,3 +85,7 @@ known-first-party = ["vibe"]
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**/*.py" = ["RUF001"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
