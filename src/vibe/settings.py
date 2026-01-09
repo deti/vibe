@@ -13,7 +13,7 @@ from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
-# Compute the project root (repo root), e.g. .../autonomous-contributor
+# Compute the project root (repo root), e.g.
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 
 

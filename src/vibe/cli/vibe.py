@@ -125,6 +125,7 @@ def main(prompt_file: Path) -> None:
     and prints the session ID and result.
     """
     project_config = _load_config()
+    info(f"project_config: {project_config}")
     prompt_content = _read_prompt(prompt_file)
     _invoke_claude_with_reporting(prompt_content)
     _run_project_checks(project_config)

@@ -72,7 +72,7 @@ def test_load_project_config_missing_file():
         tmp_path = Path(tmpdir)
         # Don't create .vibe directory, so config file won't exist
 
-        with patch("vibe.project_config.PROJECT_ROOT", tmp_path):
+        with patch("pathlib.Path.cwd", return_value=tmp_path):
             result = load_project_config()
             assert result is None
 
@@ -86,7 +86,7 @@ def test_load_project_config_empty_file():
         config_file = vibe_dir / "vibe.yaml"
         config_file.write_text("", encoding="utf-8")
 
-        with patch("vibe.project_config.PROJECT_ROOT", tmp_path):
+        with patch("pathlib.Path.cwd", return_value=tmp_path):
             result = load_project_config()
             assert result is not None
             assert isinstance(result, ProjectConfig)
@@ -112,7 +112,7 @@ def test_load_project_config_valid_with_checks():
         config_file = vibe_dir / "vibe.yaml"
         config_file.write_text(yaml.dump(config_data), encoding="utf-8")
 
-        with patch("vibe.project_config.PROJECT_ROOT", tmp_path):
+        with patch("pathlib.Path.cwd", return_value=tmp_path):
             result = load_project_config()
             assert result is not None
             assert isinstance(result, ProjectConfig)
@@ -134,7 +134,7 @@ def test_load_project_config_valid_without_checks():
         config_file = vibe_dir / "vibe.yaml"
         config_file.write_text(yaml.dump(config_data), encoding="utf-8")
 
-        with patch("vibe.project_config.PROJECT_ROOT", tmp_path):
+        with patch("pathlib.Path.cwd", return_value=tmp_path):
             result = load_project_config()
             assert result is not None
             assert isinstance(result, ProjectConfig)
@@ -155,7 +155,7 @@ def test_load_project_config_invalid_yaml():
         config_file.write_text(invalid_yaml, encoding="utf-8")
 
         with (
-            patch("vibe.project_config.PROJECT_ROOT", tmp_path),
+            patch("pathlib.Path.cwd", return_value=tmp_path),
             pytest.raises(yaml.YAMLError),
         ):
             load_project_config()
@@ -179,7 +179,7 @@ def test_load_project_config_invalid_structure():
         config_file.write_text(yaml.dump(config_data), encoding="utf-8")
 
         with (
-            patch("vibe.project_config.PROJECT_ROOT", tmp_path),
+            patch("pathlib.Path.cwd", return_value=tmp_path),
             pytest.raises(ValueError, match="Failed to validate"),
         ):
             load_project_config()
@@ -202,7 +202,7 @@ def test_load_project_config_invalid_max_retries_type():
         config_file.write_text(yaml.dump(config_data), encoding="utf-8")
 
         with (
-            patch("vibe.project_config.PROJECT_ROOT", tmp_path),
+            patch("pathlib.Path.cwd", return_value=tmp_path),
             pytest.raises(ValueError, match="Failed to validate"),
         ):
             load_project_config()
@@ -223,7 +223,7 @@ def test_load_project_config_checks_with_default_max_retries():
         config_file = vibe_dir / "vibe.yaml"
         config_file.write_text(yaml.dump(config_data), encoding="utf-8")
 
-        with patch("vibe.project_config.PROJECT_ROOT", tmp_path):
+        with patch("pathlib.Path.cwd", return_value=tmp_path):
             result = load_project_config()
             assert result is not None
             assert result.checks is not None
@@ -241,7 +241,7 @@ def test_load_project_config_empty_checks_steps():
         config_file = vibe_dir / "vibe.yaml"
         config_file.write_text(yaml.dump(config_data), encoding="utf-8")
 
-        with patch("vibe.project_config.PROJECT_ROOT", tmp_path):
+        with patch("pathlib.Path.cwd", return_value=tmp_path):
             result = load_project_config()
             assert result is not None
             assert result.checks is not None

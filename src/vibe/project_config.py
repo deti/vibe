@@ -1,9 +1,9 @@
 """Project-specific configuration loading from .vibe/vibe.yaml."""
 
+from pathlib import Path
+
 import yaml
 from pydantic import BaseModel, Field
-
-from vibe.settings import PROJECT_ROOT
 
 
 class CheckStep(BaseModel):
@@ -36,6 +36,9 @@ class ProjectConfig(BaseModel):
 def load_project_config() -> ProjectConfig | None:
     """Load project configuration from .vibe/vibe.yaml.
 
+    Looks for the config file in the current working directory (where the command
+    is run from), not where the vibe package is installed.
+
     Returns:
         ProjectConfig instance if config file exists and is valid, None otherwise.
 
@@ -43,7 +46,7 @@ def load_project_config() -> ProjectConfig | None:
         yaml.YAMLError: If YAML parsing fails.
         ValueError: If config validation fails.
     """
-    config_path = PROJECT_ROOT / ".vibe" / "vibe.yaml"
+    config_path = Path.cwd() / ".vibe" / "vibe.yaml"
 
     if not config_path.exists():
         return None
