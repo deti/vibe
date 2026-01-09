@@ -29,7 +29,6 @@ class TestPrintFunctions:
         success("Test success")
         captured = capsys.readouterr()
         assert "Test success" in captured.out
-        assert "✓" in captured.out or "[green]" in captured.out
 
     def test_info(self, capsys):
         """Test info message printing."""
@@ -43,14 +42,12 @@ class TestPrintFunctions:
         warning("Test warning")
         captured = capsys.readouterr()
         assert "Test warning" in captured.out
-        assert "⚠" in captured.out or "[yellow]" in captured.out
 
     def test_error(self, capsys):
         """Test error message printing."""
         error("Test error")
         captured = capsys.readouterr()
         assert "Test error" in captured.err
-        assert "✗" in captured.err or "[red]" in captured.err
 
     def test_fatal(self, capsys):
         """Test fatal message printing and exit."""

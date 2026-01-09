@@ -7,7 +7,8 @@ from pathlib import Path
 
 import click
 
-from vibe.cli.utils import info, error
+from vibe.cli.utils import error, info
+
 
 @click.command()
 @click.argument("prompt_file", type=click.Path(exists=True, path_type=Path))
@@ -31,26 +32,31 @@ def main(prompt_file: Path) -> None:
         error("Error: Prompt file is empty")
         sys.exit(1)
 
-    info(f"Running Claude with prompt:\n-------\n{prompt_content}\n-------")
+    command = [
+        "claude",
+        "-p",
+        prompt_content,
+        "--output-format",
+        "json",
+        "--allowedTools",
+        "'Bash,Read,Edit'",
+        "--dangerously-skip-permissions",
+    ]
+
+    info(f"Running Claude with prompt:\n-------\n{' '.join(command)}\n-------")
 
     # Invoke claude command
     try:
         result = subprocess.run(
-            [
-                "claude",
-                "-p",
-                prompt_content,
-                "--output-format",
-                "json",
-                "--allowedTools",
-                "Bash,Read,Edit",
-            ],
+            command,
             capture_output=True,
             text=True,
             check=True,
         )
     except FileNotFoundError:
-        error("Error: 'claude' command not found. Please ensure Claude Code is installed.")
+        error(
+            "Error: 'claude' command not found. Please ensure Claude Code is installed."
+        )
         sys.exit(1)
     except subprocess.CalledProcessError as e:
         error(f"Error: Claude command failed with exit code {e.returncode}")

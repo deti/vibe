@@ -36,6 +36,7 @@ def warning(message: str) -> None:
 
 def error(message: str) -> None:
     """Print an error message."""
+    error_console.print(f"[red][/red] {message}")
 
 
 def fatal(message: str, exit_code: int = 1) -> NoReturn:
