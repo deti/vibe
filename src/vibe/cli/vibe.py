@@ -1,13 +1,20 @@
 """CLI command to invoke Claude Code headless with a prompt file."""
 
 import json
-import subprocess
 import sys
 from pathlib import Path
 
 import click
 
 from vibe.cli.utils import error, info
+from vibe.providers.claude import (
+    ClaudeCommandError,
+    ClaudeCommandNotFoundError,
+    ClaudeJSONParseError,
+)
+from vibe.providers.claude import (
+    invoke as invoke_claude,
+)
 
 
 @click.command()
@@ -32,52 +39,32 @@ def main(prompt_file: Path) -> None:
         error("Error: Prompt file is empty")
         sys.exit(1)
 
-    command = [
-        "claude",
-        "-p",
-        prompt_content,
-        "--output-format",
-        "json",
-        "--allowedTools",
-        "'Bash,Read,Edit'",
-        "--dangerously-skip-permissions",
-    ]
-
-    info(f"Running Claude with prompt:\n-------\n{' '.join(command)}\n-------")
+    info(f"Running Claude with prompt:\n-------\n{prompt_content}\n-------")
 
     # Invoke claude command
     try:
-        result = subprocess.run(
-            command,
-            capture_output=True,
-            text=True,
-            check=True,
-        )
-    except FileNotFoundError:
-        error(
-            "Error: 'claude' command not found. Please ensure Claude Code is installed."
-        )
+        output_data = invoke_claude(prompt_content)
+    except ClaudeCommandNotFoundError as e:
+        error(f"Error: {e}")
         sys.exit(1)
-    except subprocess.CalledProcessError as e:
-        error(f"Error: Claude command failed with exit code {e.returncode}")
+    except ClaudeCommandError as e:
+        error(f"Error: {e}")
         if e.stderr:
             error(f"Error output: {e.stderr}")
         sys.exit(1)
-
-    # Parse JSON output
-    try:
-        output_data = json.loads(result.stdout)
-        info("---- unparsed Claude output ----")
-        info(json.dumps(output_data, indent=2))
-        info("--------------------------------")
-        info(
-            f"Claude output parsed successfully. "
-            f"{len(output_data)} keys found in JSON output."
-        )
-    except json.JSONDecodeError as e:
-        error(f"Error: Failed to parse Claude output as JSON: {e}")
-        error(f"Raw output: {result.stdout}")
+    except ClaudeJSONParseError as e:
+        error(f"Error: {e}")
+        error(f"Raw output: {e.raw_output}")
         sys.exit(1)
+
+    # Display parsed output
+    info("---- unparsed Claude output ----")
+    info(json.dumps(output_data, indent=2))
+    info("--------------------------------")
+    info(
+        f"Claude output parsed successfully. "
+        f"{len(output_data)} keys found in JSON output."
+    )
 
     # Extract session_id and result
     session_id = output_data.get("session_id")

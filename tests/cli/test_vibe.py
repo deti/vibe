@@ -5,12 +5,17 @@ import os
 import subprocess
 import sys
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 from click.testing import CliRunner
 
 from vibe.cli.vibe import main
+from vibe.providers.claude import (
+    ClaudeCommandError,
+    ClaudeCommandNotFoundError,
+    ClaudeJSONParseError,
+)
 
 
 # Ensure the package can be imported from the src/ layout during tests
@@ -45,32 +50,14 @@ def test_vibe_main_function_success(temp_prompt_file):
 
     runner = CliRunner()
 
-    with patch("subprocess.run") as mock_subprocess:
-        mock_result = MagicMock()
-        mock_result.stdout = json.dumps(mock_output)
-        mock_result.stderr = ""
-        mock_result.returncode = 0
-        mock_subprocess.return_value = mock_result
+    with patch("vibe.cli.vibe.invoke_claude") as mock_invoke:
+        mock_invoke.return_value = mock_output
 
         # Call main with the temp file path
         result = runner.invoke(main, [str(temp_prompt_file)])
 
-        # Verify subprocess was called correctly
-        mock_subprocess.assert_called_once()
-        call_args = mock_subprocess.call_args
-        assert call_args[0][0] == [
-            "claude",
-            "-p",
-            "Test prompt content",
-            "--output-format",
-            "json",
-            "--allowedTools",
-            "'Bash,Read,Edit'",
-            "--dangerously-skip-permissions",
-        ]
-        assert call_args[1]["capture_output"] is True
-        assert call_args[1]["text"] is True
-        assert call_args[1]["check"] is True
+        # Verify invoke was called correctly
+        mock_invoke.assert_called_once_with("Test prompt content")
 
         # Verify output
         assert result.exit_code == 0
@@ -106,8 +93,10 @@ def test_vibe_main_function_claude_not_found(temp_prompt_file):
     """Test that the main function handles claude command not found."""
     runner = CliRunner()
 
-    with patch("subprocess.run") as mock_subprocess:
-        mock_subprocess.side_effect = FileNotFoundError()
+    with patch("vibe.cli.vibe.invoke_claude") as mock_invoke:
+        mock_invoke.side_effect = ClaudeCommandNotFoundError(
+            "'claude' command not found. Please ensure Claude Code is installed."
+        )
 
         result = runner.invoke(main, [str(temp_prompt_file)])
 
@@ -119,11 +108,9 @@ def test_vibe_main_function_claude_failure(temp_prompt_file):
     """Test that the main function handles claude command failures."""
     runner = CliRunner()
 
-    with patch("subprocess.run") as mock_subprocess:
-        mock_subprocess.side_effect = subprocess.CalledProcessError(
-            returncode=1,
-            cmd=["claude"],
-            stderr="Claude error message",
+    with patch("vibe.cli.vibe.invoke_claude") as mock_invoke:
+        mock_invoke.side_effect = ClaudeCommandError(
+            returncode=1, stderr="Claude error message"
         )
 
         result = runner.invoke(main, [str(temp_prompt_file)])
@@ -137,12 +124,11 @@ def test_vibe_main_function_invalid_json(temp_prompt_file):
     """Test that the main function handles invalid JSON output."""
     runner = CliRunner()
 
-    with patch("subprocess.run") as mock_subprocess:
-        mock_result = MagicMock()
-        mock_result.stdout = "Invalid JSON output"
-        mock_result.stderr = ""
-        mock_result.returncode = 0
-        mock_subprocess.return_value = mock_result
+    with patch("vibe.cli.vibe.invoke_claude") as mock_invoke:
+        json_error = json.JSONDecodeError("Expecting value", "Invalid JSON output", 0)
+        mock_invoke.side_effect = ClaudeJSONParseError(
+            error=json_error, raw_output="Invalid JSON output"
+        )
 
         result = runner.invoke(main, [str(temp_prompt_file)])
 
@@ -158,12 +144,8 @@ def test_vibe_main_function_missing_session_id(temp_prompt_file):
 
     runner = CliRunner()
 
-    with patch("subprocess.run") as mock_subprocess:
-        mock_result = MagicMock()
-        mock_result.stdout = json.dumps(mock_output)
-        mock_result.stderr = ""
-        mock_result.returncode = 0
-        mock_subprocess.return_value = mock_result
+    with patch("vibe.cli.vibe.invoke_claude") as mock_invoke:
+        mock_invoke.return_value = mock_output
 
         result = runner.invoke(main, [str(temp_prompt_file)])
 
@@ -181,12 +163,8 @@ def test_vibe_main_function_missing_result(temp_prompt_file):
 
     runner = CliRunner()
 
-    with patch("subprocess.run") as mock_subprocess:
-        mock_result = MagicMock()
-        mock_result.stdout = json.dumps(mock_output)
-        mock_result.stderr = ""
-        mock_result.returncode = 0
-        mock_subprocess.return_value = mock_result
+    with patch("vibe.cli.vibe.invoke_claude") as mock_invoke:
+        mock_invoke.return_value = mock_output
 
         result = runner.invoke(main, [str(temp_prompt_file)])
 
@@ -244,16 +222,11 @@ def test_vibe_prompt_file_reading_with_unicode(tmp_path):
 
     runner = CliRunner()
 
-    with patch("subprocess.run") as mock_subprocess:
-        mock_result = MagicMock()
-        mock_result.stdout = json.dumps(mock_output)
-        mock_result.stderr = ""
-        mock_result.returncode = 0
-        mock_subprocess.return_value = mock_result
+    with patch("vibe.cli.vibe.invoke_claude") as mock_invoke:
+        mock_invoke.return_value = mock_output
 
         result = runner.invoke(main, [str(prompt_file)])
 
         # Verify the prompt content was passed correctly
-        call_args = mock_subprocess.call_args
-        assert unicode_content in call_args[0][0][2]  # The prompt is the 3rd argument
+        mock_invoke.assert_called_once_with(unicode_content)
         assert result.exit_code == 0
