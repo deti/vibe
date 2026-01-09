@@ -86,7 +86,7 @@ def test_vibe_main_function_empty_file(empty_prompt_file):
     result = runner.invoke(main, [str(empty_prompt_file)])
 
     assert result.exit_code == 1
-    assert "Error: Prompt file is empty" in result.output
+    assert "Prompt file is empty" in result.output
 
 
 def test_vibe_main_function_claude_not_found(temp_prompt_file):
@@ -101,7 +101,7 @@ def test_vibe_main_function_claude_not_found(temp_prompt_file):
         result = runner.invoke(main, [str(temp_prompt_file)])
 
         assert result.exit_code == 1
-        assert "Error: 'claude' command not found" in result.output
+        assert "'claude' command not found" in result.output
 
 
 def test_vibe_main_function_claude_failure(temp_prompt_file):
@@ -116,7 +116,7 @@ def test_vibe_main_function_claude_failure(temp_prompt_file):
         result = runner.invoke(main, [str(temp_prompt_file)])
 
         assert result.exit_code == 1
-        assert "Error: Claude command failed" in result.output
+        assert "Claude command failed" in result.output
         assert "Claude error message" in result.output
 
 
@@ -133,7 +133,7 @@ def test_vibe_main_function_invalid_json(temp_prompt_file):
         result = runner.invoke(main, [str(temp_prompt_file)])
 
         assert result.exit_code == 1
-        assert "Error: Failed to parse Claude output as JSON" in result.output
+        assert "Failed to parse Claude output as JSON" in result.output
 
 
 def test_vibe_main_function_missing_session_id(temp_prompt_file):

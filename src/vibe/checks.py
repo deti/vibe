@@ -70,9 +70,7 @@ def run_check(step: CheckStep) -> CheckResult:
         )
 
 
-def run_checks_with_retry(
-    config: ChecksConfig, _original_prompt: str
-) -> list[CheckResult]:
+def run_checks_with_retry(config: ChecksConfig) -> list[CheckResult]:
     """Run checks with automatic retry logic.
 
     If any check fails, automatically calls Claude with a fix prompt and retries
@@ -80,7 +78,6 @@ def run_checks_with_retry(
 
     Args:
         config: The checks configuration.
-        _original_prompt: The original prompt that was executed (for context).
 
     Returns:
         List of final check results, even if some checks failed.

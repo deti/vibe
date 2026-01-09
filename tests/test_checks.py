@@ -113,7 +113,7 @@ def test_run_checks_with_retry_no_steps():
     """Test run_checks_with_retry with no check steps."""
     config = ChecksConfig(steps=[], max_retries=3)
 
-    results = run_checks_with_retry(config, "original prompt")
+    results = run_checks_with_retry(config)
 
     assert results == []
 
@@ -132,7 +132,7 @@ def test_run_checks_with_retry_all_pass_first_try():
             CheckResult(success=True, step_name="lint", output="lint passed"),
         ]
 
-        results = run_checks_with_retry(config, "original prompt")
+        results = run_checks_with_retry(config)
 
         assert len(results) == 2
         assert all(r.success for r in results)
@@ -157,7 +157,7 @@ def test_run_checks_with_retry_failure_then_success():
             CheckResult(success=True, step_name="test", output="All tests passed"),
         ]
 
-        results = run_checks_with_retry(config, "original prompt")
+        results = run_checks_with_retry(config)
 
         assert len(results) == 1
         assert results[0].success is True
@@ -179,7 +179,7 @@ def test_run_checks_with_retry_max_retries_reached():
             success=False, step_name="test", output="", error="Tests failed"
         )
 
-        results = run_checks_with_retry(config, "original prompt")
+        results = run_checks_with_retry(config)
 
         assert len(results) == 1
         assert results[0].success is False
@@ -212,7 +212,7 @@ def test_run_checks_with_retry_multiple_checks_mixed_results():
             CheckResult(success=True, step_name="lint", output="lint passed"),
         ]
 
-        results = run_checks_with_retry(config, "original prompt")
+        results = run_checks_with_retry(config)
 
         assert len(results) == 2
         assert all(r.success for r in results)
@@ -234,7 +234,7 @@ def test_run_checks_with_retry_claude_command_not_found():
         )
         mock_invoke.side_effect = ClaudeCommandNotFoundError()
 
-        results = run_checks_with_retry(config, "original prompt")
+        results = run_checks_with_retry(config)
 
         assert len(results) == 1
         assert results[0].success is False
@@ -257,7 +257,7 @@ def test_run_checks_with_retry_claude_command_error():
             returncode=1, stderr="Claude error"
         )
 
-        results = run_checks_with_retry(config, "original prompt")
+        results = run_checks_with_retry(config)
 
         assert len(results) == 1
         assert results[0].success is False
@@ -282,7 +282,7 @@ def test_run_checks_with_retry_claude_json_parse_error():
             error=json_error, raw_output="invalid json"
         )
 
-        results = run_checks_with_retry(config, "original prompt")
+        results = run_checks_with_retry(config)
 
         assert len(results) == 1
         assert results[0].success is False
@@ -310,7 +310,7 @@ def test_run_checks_with_retry_fix_prompt_content():
             CheckResult(success=True, step_name="lint", output="lint passed"),
         ]
 
-        run_checks_with_retry(config, "original prompt")
+        run_checks_with_retry(config)
 
         # Verify fix prompt was called with correct content
         assert mock_invoke.call_count == 1
@@ -341,7 +341,7 @@ def test_run_checks_with_retry_uses_error_output_when_available():
             CheckResult(success=True, step_name="test", output="test passed"),
         ]
 
-        run_checks_with_retry(config, "original prompt")
+        run_checks_with_retry(config)
 
         fix_prompt = mock_invoke.call_args[0][0]
         # Should use error (stderr) over output (stdout)
@@ -365,7 +365,7 @@ def test_run_checks_with_retry_uses_output_when_no_error():
             CheckResult(success=True, step_name="test", output="test passed"),
         ]
 
-        run_checks_with_retry(config, "original prompt")
+        run_checks_with_retry(config)
 
         fix_prompt = mock_invoke.call_args[0][0]
         assert "stdout content" in fix_prompt
@@ -385,7 +385,7 @@ def test_run_checks_with_retry_handles_no_output():
             CheckResult(success=True, step_name="test", output="test passed"),
         ]
 
-        run_checks_with_retry(config, "original prompt")
+        run_checks_with_retry(config)
 
         fix_prompt = mock_invoke.call_args[0][0]
         assert "No output" in fix_prompt

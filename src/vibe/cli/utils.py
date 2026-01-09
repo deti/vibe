@@ -21,22 +21,22 @@ error_console = Console(stderr=True)
 
 def success(message: str) -> None:
     """Print a success message."""
-    console.print(f"[green][/green] {message}")
+    console.print(f"[green]SUCCESS:[/green] {message}")
 
 
 def info(message: str) -> None:
     """Print an info message."""
-    console.print(f"[blue][/blue] {message}")
+    console.print(f"[blue]INFO:[/blue] {message}")
 
 
 def warning(message: str) -> None:
     """Print a warning message."""
-    console.print(f"[yellow][/yellow] {message}")
+    console.print(f"[yellow]WARNING:[/yellow] {message}")
 
 
 def error(message: str) -> None:
     """Print an error message."""
-    error_console.print(f"[red][/red] {message}")
+    error_console.print(f"[red]ERROR:[/red] {message}")
 
 
 def fatal(message: str, exit_code: int = 1) -> NoReturn:
