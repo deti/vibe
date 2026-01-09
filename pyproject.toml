@@ -17,6 +17,7 @@ dependencies = [
     "uvicorn",
     "click",
     "rich>=14.2.0",
+    "pyyaml",
 ]
 
 [dependency-groups]
@@ -67,8 +68,12 @@ select = [
     "PGH", "PL", "TRY", "NPY", "RUF",
 ]
 ignore = [
+    "PLR0911", # Too many return statements (acceptable for retry logic)
+    "PLR0912", # Too many branches (acceptable for CLI main function)
     "PLR0913", # Too many arguments
+    "PLR0915", # Too many statements (acceptable for CLI main function)
     "PLR2004", # Magic value used in comparison
+    "TC001", # Type-checking imports (we need these at runtime for attribute access)
     "N999", # Hyphen in GitHub repo name
 ]
 fixable = ["ALL"]
