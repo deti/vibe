@@ -57,7 +57,9 @@ def test_vibe_main_function_success(temp_prompt_file):
         result = runner.invoke(main, [str(temp_prompt_file)])
 
         # Verify invoke was called correctly
-        mock_invoke.assert_called_once_with("Test prompt content")
+        mock_invoke.assert_called_once_with(
+            "Test prompt content", system_prompt_file=None
+        )
 
         # Verify output
         assert result.exit_code == 0
@@ -228,5 +230,104 @@ def test_vibe_prompt_file_reading_with_unicode(tmp_path):
         result = runner.invoke(main, [str(prompt_file)])
 
         # Verify the prompt content was passed correctly
-        mock_invoke.assert_called_once_with(unicode_content)
+        mock_invoke.assert_called_once_with(unicode_content, system_prompt_file=None)
         assert result.exit_code == 0
+
+
+def test_vibe_with_system_prompt_file(tmp_path):
+    """Test that system prompt file is detected and passed to Claude."""
+    prompt_file = tmp_path / "prompt.txt"
+    prompt_file.write_text("Test prompt content")
+
+    # Create .vibe directory and system prompt file
+    vibe_dir = tmp_path / ".vibe"
+    vibe_dir.mkdir()
+    system_prompt_file = vibe_dir / "vibe.md"
+    system_prompt_file.write_text("System prompt content")
+
+    mock_output = {
+        "session_id": "test-session-123",
+        "result": "Test result",
+    }
+
+    runner = CliRunner()
+
+    with (
+        patch("vibe.cli.vibe.invoke_claude") as mock_invoke,
+        patch("vibe.cli.vibe.Path.cwd", return_value=tmp_path),
+    ):
+        mock_invoke.return_value = mock_output
+
+        result = runner.invoke(main, [str(prompt_file)])
+
+        # Verify system prompt file was passed
+        mock_invoke.assert_called_once()
+        call_args = mock_invoke.call_args
+        assert call_args[0][0] == "Test prompt content"
+        assert call_args[1]["system_prompt_file"] == system_prompt_file
+        assert result.exit_code == 0
+        assert "Using system prompt file" in result.output
+
+
+def test_vibe_with_system_prompt_file_case_insensitive(tmp_path):
+    """Test that system prompt file detection is case-insensitive."""
+    prompt_file = tmp_path / "prompt.txt"
+    prompt_file.write_text("Test prompt content")
+
+    # Create .vibe directory and system prompt file with uppercase name
+    vibe_dir = tmp_path / ".vibe"
+    vibe_dir.mkdir()
+    system_prompt_file = vibe_dir / "VIBE.md"
+    system_prompt_file.write_text("System prompt content")
+
+    mock_output = {
+        "session_id": "test-session-123",
+        "result": "Test result",
+    }
+
+    runner = CliRunner()
+
+    with (
+        patch("vibe.cli.vibe.invoke_claude") as mock_invoke,
+        patch("vibe.cli.vibe.Path.cwd", return_value=tmp_path),
+    ):
+        mock_invoke.return_value = mock_output
+
+        result = runner.invoke(main, [str(prompt_file)])
+
+        # Verify system prompt file was found and passed (case-insensitive)
+        mock_invoke.assert_called_once()
+        call_args = mock_invoke.call_args
+        assert call_args[0][0] == "Test prompt content"
+        assert call_args[1]["system_prompt_file"] == system_prompt_file
+        assert result.exit_code == 0
+
+
+def test_vibe_without_system_prompt_file(tmp_path):
+    """Test that vibe works normally when no system prompt file exists."""
+    prompt_file = tmp_path / "prompt.txt"
+    prompt_file.write_text("Test prompt content")
+
+    # Don't create .vibe directory
+    mock_output = {
+        "session_id": "test-session-123",
+        "result": "Test result",
+    }
+
+    runner = CliRunner()
+
+    with (
+        patch("vibe.cli.vibe.invoke_claude") as mock_invoke,
+        patch("vibe.cli.vibe.Path.cwd", return_value=tmp_path),
+    ):
+        mock_invoke.return_value = mock_output
+
+        result = runner.invoke(main, [str(prompt_file)])
+
+        # Verify no system prompt file was passed
+        mock_invoke.assert_called_once()
+        call_args = mock_invoke.call_args
+        assert call_args[0][0] == "Test prompt content"
+        assert call_args[1]["system_prompt_file"] is None
+        assert result.exit_code == 0
+        assert "Using system prompt file" not in result.output

@@ -2,7 +2,11 @@
 
 import json
 import subprocess
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 class ClaudeError(Exception):
@@ -38,11 +42,12 @@ class ClaudeJSONParseError(ClaudeError):
         super().__init__(f"Failed to parse Claude output as JSON: {error}")
 
 
-def invoke(prompt: str) -> dict[str, Any]:
+def invoke(prompt: str, system_prompt_file: Path | None = None) -> dict[str, Any]:
     """Invoke Claude CLI with the given prompt and return parsed JSON output.
 
     Args:
         prompt: The prompt text to send to Claude.
+        system_prompt_file: Optional path to a system prompt file to pass to Claude.
 
     Returns:
         A dictionary containing the parsed JSON output from Claude, typically
@@ -57,12 +62,21 @@ def invoke(prompt: str) -> dict[str, Any]:
         "claude",
         "-p",
         prompt,
-        "--output-format",
-        "json",
-        "--allowedTools",
-        "'Bash,Read,Edit'",
-        "--dangerously-skip-permissions",
     ]
+
+    # Add system prompt file if provided
+    if system_prompt_file is not None:
+        command.extend(["--system-prompt-file", str(system_prompt_file)])
+
+    command.extend(
+        [
+            "--output-format",
+            "json",
+            "--allowedTools",
+            "'Bash,Read,Edit'",
+            "--dangerously-skip-permissions",
+        ]
+    )
 
     # Invoke claude command
     try:
