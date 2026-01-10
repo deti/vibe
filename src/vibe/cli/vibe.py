@@ -39,26 +39,6 @@ def _load_config() -> ProjectConfig | None:
         return project_config
 
 
-def _find_system_prompt_file() -> Path | None:
-    """Find system prompt file in .vibe folder (case-insensitive).
-
-    Looks for vibe.md or VIBE.md in the .vibe folder relative to current working directory.
-
-    Returns:
-        Path to system prompt file if found, None otherwise.
-    """
-    vibe_dir = Path.cwd() / ".vibe"
-    if not vibe_dir.exists():
-        return None
-
-    # Case-insensitive search for vibe.md
-    for file in vibe_dir.iterdir():
-        if file.is_file() and file.name.lower() == "vibe.md":
-            return file
-
-    return None
-
-
 def _read_prompt(prompt_file: Path) -> str:
     """Read and validate prompt from file."""
     try:
@@ -73,19 +53,12 @@ def _read_prompt(prompt_file: Path) -> str:
         return content
 
 
-def _invoke_claude_with_reporting(
-    prompt_content: str, system_prompt_file: Path | None = None
-) -> dict:
+def _invoke_claude_with_reporting(prompt_content: str) -> dict:
     """Invoke Claude and handle reporting/errors."""
     info(f"Running Claude with prompt:\n-------\n{prompt_content}\n-------")
 
-    if system_prompt_file:
-        info(f"Using system prompt file: {system_prompt_file}")
-
     try:
-        output_data = invoke_claude(
-            prompt_content, system_prompt_file=system_prompt_file
-        )
+        output_data = invoke_claude(prompt_content)
     except ClaudeCommandNotFoundError as e:
         fatal(str(e))
     except ClaudeCommandError as e:
@@ -154,8 +127,7 @@ def main(prompt_file: Path) -> None:
     project_config = _load_config()
     info(f"project_config: {project_config}")
     prompt_content = _read_prompt(prompt_file)
-    system_prompt_file = _find_system_prompt_file()
-    _invoke_claude_with_reporting(prompt_content, system_prompt_file=system_prompt_file)
+    _invoke_claude_with_reporting(prompt_content)
     _run_project_checks(project_config)
 
 
